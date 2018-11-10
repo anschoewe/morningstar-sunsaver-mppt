@@ -11,7 +11,10 @@ brew install libmodbus
 ```
 
 # Compile code with...
-`g++ \`pkg-config --cflags --libs libmodbus\` sunsaver.cpp -o sunsaver && chmod +x sunsaver
+
+```
+g++ `pkg-config --cflags --libs libmodbus` sunsaver.cpp -o sunsaver && chmod +x sunsaver
+```
 
 # Run
 `./sunsaver`

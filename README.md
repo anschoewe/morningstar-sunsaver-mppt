@@ -13,5 +13,5 @@ TODO
 # Helpful Links
 - Morningstar official documentation: http://support.morningstarcorp.com/wp-content/uploads/2014/07/SSMPPT.APP_Public-Modbus-Doc_EN_v11.pdf 
 - libmodbus documentation: http://libmodbus.org/docs/v3.1.4/modbus_write_register.html
-- Example blog showing example of how to connect to MorningStar SureSine using libmodbus on Mac/Linux: https://westyd1982.wordpress.com/2010/03/26/linux-and-mac-os-x-software-to-read-data-from-the-sunsaver-mppt-using-modbus/
+- Example blog showing example of how to connect to MorningStar SunSaver using libmodbus on Mac/Linux: https://westyd1982.wordpress.com/2010/03/26/linux-and-mac-os-x-software-to-read-data-from-the-sunsaver-mppt-using-modbus/
 

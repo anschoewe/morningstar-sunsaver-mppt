@@ -351,5 +351,32 @@ void read(modbus_t *ctx) {
 }
 
 void write(modbus_t *ctx) {
-	//TODO
+	int rc;
+	float rawInput;
+
+	/***************
+	*
+	* Write EV_reg2
+	*
+	****************/
+	
+	// Regulation Charge Voltage - EV_reg2
+	// valueInBase10 = (12.4V * 65535) / 16.92 = 48028.014184397163121
+	// valueInBase16 = 0xBB9C
+	cout << "Regulation Charge Voltage: ";
+	cin >> rawInput;
+	cout << endl;
+	rc = writeRegister(ctx, 0xE00D, rawInput);
+	if(rc == 1) {
+		printf("Successfully updated Regulation Charge Voltage\n");
+	} else {
+		printf("Update of Regulation Charge Voltage Failed");
+	}
+}
+
+int writeRegister(modbus_t *ctx, int addr, float rawInput) {
+	float floatInputVal =(rawInput * 32768.0) / 100.0;
+	int intInputVal = (int)floatInputVal;
+	//cout << intInputVal << endl;
+	return modbus_write_register(ctx, addr, intInputVal);
 }

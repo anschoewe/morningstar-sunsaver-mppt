@@ -1,8 +1,17 @@
 # Getting Started
 Before compiling code, make sure you have the correct path to your MODBUS adapter.  On my Mac it was /dev/tty.usbserial-DO001BL8
+Also, make sure you have libmodbus installed.
+
+# Install libmodbus on Mac
+Using homebrew...
+
+```
+brew update
+brew install libmodbus
+```
 
 # Compile code with...
-cc `pkg-config --cflags --libs libmodbus` sunsaver.c -o sunsaver && chmod +x sunsaver
+g++ `pkg-config --cflags --libs libmodbus` sunsaver.cpp -o sunsaver && chmod +x sunsaver
 
 # Run
 `./sunsaver`

@@ -38,6 +38,7 @@ modbus_t* connect(string *devicePath);
 int disconnect(modbus_t *ctx);
 void read(modbus_t *ctx);
 void write(modbus_t *ctx);
+void logs(modbus_t *ctx);
 int writeRegister(modbus_t *ctx, int addr, float rawInput);
 
 int main(void)
@@ -51,6 +52,7 @@ int main(void)
 	cout << "Choose mode..." << endl;
 	cout << "1. Read" << endl;
 	cout << "2. Write" << endl;
+	cout << "3. Logs" << endl;
 	cout << "Mode: ";
 
 	cin >> menuChoice;
@@ -69,6 +71,8 @@ int main(void)
 		read(ctx);
 	} else if(menuChoice == 2) {
 		write(ctx);
+	} else if(menuChoice == 3) {
+		logs(ctx);
 	} else {
 		printf("Invalid choice.");
 		return -1;
@@ -371,6 +375,122 @@ void write(modbus_t *ctx) {
 		printf("Successfully updated Regulation Charge Voltage\n");
 	} else {
 		printf("Update of Regulation Charge Voltage Failed");
+	}
+}
+
+void logs(modbus_t *ctx) {
+	int i, rc;
+	unsigned int hourmeter, alarm_daily;
+	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily, Va_max_daily;
+	unsigned short array_fault_daily, load_fault_daily, time_ab_daily, time_eq_daily, time_fl_daily;
+	unsigned short data[16];
+
+	for(i=0x8000; i<0x81FF; i+=0x0010) {
+		
+		/* Read the log registers and convert the results to their proper values */
+		rc = modbus_read_registers(ctx,  i, 13, data);
+		if (rc == -1) {
+			fprintf(stderr, "%s\n", modbus_strerror(errno));
+			return;
+		}
+		
+		printf("Log Record: 0x%0X\n\n",i);
+		
+		hourmeter=data[0] + ((data[1] & 0x00FF) << 16);
+		printf("hourmeter = %d h\n",hourmeter);
+		
+		alarm_daily=(data[2] << 8) + (data[1] >> 8);
+		printf("alarm_daily = Today's controller self-diagnostic alarms:\n");
+		if (alarm_daily == 0) {
+			printf("\tNo alarms\n");
+		} else {
+			if (alarm_daily & 1) printf("\tRTS open\n");
+			if ((alarm_daily & (1 << 1)) >> 1) printf("\tRTS shorted\n");
+			if ((alarm_daily & (1 << 2)) >> 2) printf("\tRTS disconnected\n");
+			if ((alarm_daily & (1 << 3)) >> 3) printf("\tThs open\n");
+			if ((alarm_daily & (1 << 4)) >> 4) printf("\tThs shorted\n");
+			if ((alarm_daily & (1 << 5)) >> 5) printf("\tSSMPPT hot\n");
+			if ((alarm_daily & (1 << 6)) >> 6) printf("\tCurrent limit\n");
+			if ((alarm_daily & (1 << 7)) >> 7) printf("\tCurrent offset\n");
+			if ((alarm_daily & (1 << 8)) >> 8) printf("\tUndefined\n");
+			if ((alarm_daily & (1 << 9)) >> 9) printf("\tUndefined\n");
+			if ((alarm_daily & (1 << 10)) >> 10) printf("\tUncalibrated\n");
+			if ((alarm_daily & (1 << 11)) >> 11) printf("\tRTS miswire\n");
+			if ((alarm_daily & (1 << 12)) >> 12) printf("\tUndefined\n");
+			if ((alarm_daily & (1 << 13)) >> 13) printf("\tUndefined\n");
+			if ((alarm_daily & (1 << 14)) >> 14) printf("\tMiswire\n");
+			if ((alarm_daily & (1 << 15)) >> 15) printf("\tFET open\n");
+			if ((alarm_daily & (1 << 16)) >> 16) printf("\tP12\n");
+			if ((alarm_daily & (1 << 17)) >> 17) printf("\tHigh Va current limit\n");
+			if ((alarm_daily & (1 << 18)) >> 18) printf("\tAlarm 19\n");
+			if ((alarm_daily & (1 << 19)) >> 19) printf("\tAlarm 20\n");
+			if ((alarm_daily & (1 << 20)) >> 20) printf("\tAlarm 21\n");
+			if ((alarm_daily & (1 << 21)) >> 21) printf("\tAlarm 22\n");
+			if ((alarm_daily & (1 << 22)) >> 22) printf("\tAlarm 23\n");
+			if ((alarm_daily & (1 << 23)) >> 23) printf("\tAlarm 24\n");
+		}
+		
+		Vb_min_daily=data[3]*100.0/32768.0;
+		printf("Vb_min_daily = %.2f V\n",Vb_min_daily);
+		
+		Vb_max_daily=data[4]*100.0/32768.0;
+		printf("Vb_max_daily = %.2f V\n",Vb_max_daily);
+		
+		Ahc_daily=data[5]*0.1;
+		printf("Ahc_daily = %.2f Ah\n",Ahc_daily);
+		
+		Ahl_daily=data[6]*0.1;
+		printf("Ahl_daily = %.2f Ah\n",Ahl_daily);
+		
+		array_fault_daily=data[7];
+		printf("array_fault_daily = Today's solar input self-diagnostic faults:\n");
+		if (array_fault_daily == 0) {
+			printf("\tNo faults\n");
+		} else {
+			if (array_fault_daily & 1) printf("\tOvercurrent\n");
+			if ((array_fault_daily & (1 << 1)) >> 1) printf("\tFETs shorted\n");
+			if ((array_fault_daily & (1 << 2)) >> 2) printf("\tSoftware bug\n");
+			if ((array_fault_daily & (1 << 3)) >> 3) printf("\tBattery HVD\n");
+			if ((array_fault_daily & (1 << 4)) >> 4) printf("\tArray HVD\n");
+			if ((array_fault_daily & (1 << 5)) >> 5) printf("\tEEPROM setting edit (reset required)\n");
+			if ((array_fault_daily & (1 << 6)) >> 6) printf("\tRTS shorted\n");
+			if ((array_fault_daily & (1 << 7)) >> 7) printf("\tRTS was valid, now disconnected\n");
+			if ((array_fault_daily & (1 << 8)) >> 8) printf("\tLocal temperature sensor failed\n");
+			if ((array_fault_daily & (1 << 9)) >> 9) printf("\tFault 10\n");
+			if ((array_fault_daily & (1 << 10)) >> 10) printf("\tFault 11\n");
+			if ((array_fault_daily & (1 << 11)) >> 11) printf("\tFault 12\n");
+			if ((array_fault_daily & (1 << 12)) >> 12) printf("\tFault 13\n");
+			if ((array_fault_daily & (1 << 13)) >> 13) printf("\tFault 14\n");
+			if ((array_fault_daily & (1 << 14)) >> 14) printf("\tFault 15\n");
+			if ((array_fault_daily & (1 << 15)) >> 15) printf("\tFault 16\n");
+		}
+		
+		load_fault_daily=data[8];
+		printf("load_fault_daily = Today's load output self-diagnostic faults:\n");
+		if (load_fault_daily == 0) {
+			printf("\tNo faults\n");
+		} else {
+			if (load_fault_daily & 1) printf("\tExternal short circuit\n");
+			if ((load_fault_daily & (1 << 1)) >> 1) printf("\tOvercurrent\n");
+			if ((load_fault_daily & (1 << 2)) >> 2) printf("\tFETs shorted\n");
+			if ((load_fault_daily & (1 << 3)) >> 3) printf("\tSoftware bug\n");
+			if ((load_fault_daily & (1 << 4)) >> 4) printf("\tHVD\n");
+			if ((load_fault_daily & (1 << 5)) >> 5) printf("\tHeatsink over-temperature\n");
+			if ((load_fault_daily & (1 << 6)) >> 6) printf("\tEEPROM setting edit (reset required)\n");
+			if ((load_fault_daily & (1 << 7)) >> 7) printf("\tFault 8\n");
+		}
+		
+		Va_max_daily=data[9]*100.0/32768.0;
+		printf("Va_max_daily = %.2f V\n",Va_max_daily);
+		
+		time_ab_daily=data[10];
+		printf("time_ab_daily = %d min\n",time_ab_daily);
+		
+		time_eq_daily=data[11];
+		printf("time_eq_daily = %d min\n",time_eq_daily);
+		
+		time_fl_daily=data[12];
+		printf("time_fl_daily = %d min\n\n",time_fl_daily);
 	}
 }
 

@@ -27,7 +27,7 @@ The logs are reported in a somewhat complicated fashion. The logs are stored in 
 - **hourmeter**: The number of hours that the charger has been in operation.  There is typically a log record every 24 hours.  This allows you to determine when you started using the solar charger.  In my case it was on Oct. 1st, 2018, around 6pm EST.
 - **Vb_min_daily**: Minimum battery voltage recorded during the 24 hour period.  
 - **Vb_max_daily**: Maximum battery voltage recorded during the 24 hour period.
-- ##### **Ahc_daily**: The number of amp-hours charged/sent to the battery during the 24 hours period.
+- ### **Ahc_daily**: The number of amp-hours charged/sent to the battery during the 24 hours period.
 - **Ahl_daily**: The number of amp-hours sent out to the 'load' during the 24 hours period. If your load pulls directly from the battery instead of the solar charger, you should expect this to be zero.
 - **Va_max_daily**: The maximum solar panel voltage recorded as it came into the solar charger duinr the 24 hour period.
 - **time_ab_daily**: The number of minutes spent in the 'absorption' battery charge phase during the 24 hours period.

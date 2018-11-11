@@ -25,7 +25,7 @@ TODO
 # Custom Programming Values
 These suggestions are based on my [battery specifications](https://www.batterystuff.com/files/376-45825.pdf).  This is a 55Ah AGM sealed battery. I have two of these wired in parallel for a total voltage of 12V and a total capacity of 110Ah.
 - **EV_reg**: The voltage used during the main charging phase (sometimes called 'absorption', 'regulation' or 'control' voltage).  I puruposely set this high so that we get a full charge.  If you don't fully charge the battery than the capacity diminishes a bit after every charge cycle.
--- 14.9V
+  - **14.9V**
 - **EV_float**: The voltage used during the float/trickle charging phase.  I've left this at the default 13.7V.
 
 # Understanding Logs

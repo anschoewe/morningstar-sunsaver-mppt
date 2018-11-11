@@ -495,7 +495,7 @@ void logs(modbus_t *ctx) {
 }
 
 int writeRegister(modbus_t *ctx, int addr, float rawInput) {
-	float floatInputVal =(rawInput * 32768.0) / 100.0;
+	float floatInputVal = (rawInput * 32768.0) / 100.0;
 	int intInputVal = (int)floatInputVal;
 	//cout << intInputVal << endl;
 	return modbus_write_register(ctx, addr, intInputVal);

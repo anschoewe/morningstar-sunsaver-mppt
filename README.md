@@ -22,6 +22,12 @@ g++ `pkg-config --cflags --libs libmodbus` sunsaver.cpp -o sunsaver && chmod +x 
 # Commit Changes
 TODO
 
+# Custom Programming Values
+These suggestions are based on my (battery specifications)[https://www.batterystuff.com/files/376-45825.pdf].  This is a 55Ah AGM sealed battery. I have two of these wired in parallel for a total voltage of 12V and a total capacity of 110Ah.
+- **EV_reg**: The voltage used during the main charging phase (sometimes called 'absorption', 'regulation' or 'control' voltage).  I puruposely set this high so that we get a full charge.  If you don't fully charge the battery than the capacity diminishes a bit after every charge cycle.
+-- 14.9V
+- **EV_float**: The voltage used during the float/trickle charging phase.  I've left this at the default 13.7V.
+
 # Understanding Logs
 The logs are reported in a somewhat complicated fashion. The logs are stored in a ring-buffer.  After printing the log results, you should find the record with the smallest 'hourmeter' value.  This corresponds to the oldest log in the ring buffer.  The records are then stored sequentially (and potentially loop around to the first few records printed.  Typically, you should expect 32 log records which represents the last 32 days of operation.
 - **hourmeter**: The number of hours that the charger has been in operation.  There is typically a log record every 24 hours.  This allows you to determine when you started using the solar charger.  In my case it was on Oct. 1st, 2018, around 6pm EST.

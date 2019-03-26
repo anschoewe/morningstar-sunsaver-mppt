@@ -19,6 +19,15 @@ g++ `pkg-config --cflags --libs libmodbus` sunsaver.cpp -o sunsaver && chmod +x 
 # Run
 `./sunsaver`
 
+# Save output
+Run the following command and then press '1'
+
+`./sunsaver > output/snapshot_$(date +%Y-%m-%d_%H-%M-%S)`
+
+Run the following command and then press '3'
+
+`./sunsaver > output/logs_$(date +%Y-%m-%d_%H-%M-%S)`
+
 # Commit Changes
 TODO
 

@@ -37,9 +37,11 @@ using namespace std;
 modbus_t* connect(string *devicePath);
 int disconnect(modbus_t *ctx);
 void read(modbus_t *ctx);
-void write(modbus_t *ctx);
+void writeRegister(modbus_t *ctx);
+void writeCoil(modbus_t *ctx);
 void logs(modbus_t *ctx);
-int writeRegister(modbus_t *ctx, int addr, float rawInput);
+int _writeRegister(modbus_t *ctx, int addr, float rawInput);
+int _writeCoil(modbus_t *ctx, int addr, int status);
 
 int main(void)
 {
@@ -70,9 +72,11 @@ int main(void)
 	if(menuChoice == 1) {
 		read(ctx);
 	} else if(menuChoice == 2) {
-		write(ctx);
+		writeRegister(ctx);
 	} else if(menuChoice == 3) {
 		logs(ctx);
+	} else if(menuChoice == 3) {
+		writeCoil(ctx);
 	} else {
 		printf("Invalid choice.");
 		return -1;
@@ -379,7 +383,7 @@ void read(modbus_t *ctx) {
 	printf("Adc_il_f = %.2f A\n",Adc_il_f);
 }
 
-void write(modbus_t *ctx) {
+void writeRegister(modbus_t *ctx) {
 	int rc;
 	float rawInput;
 
@@ -395,11 +399,32 @@ void write(modbus_t *ctx) {
 	cout << "Regulation Charge Voltage: ";
 	cin >> rawInput;
 	cout << endl;
-	rc = writeRegister(ctx, 0xE00D, rawInput);
+	rc = _writeRegister(ctx, 0xE00D, rawInput);
 	if(rc == 1) {
 		printf("Successfully updated Regulation Charge Voltage\n");
 	} else {
 		printf("Update of Regulation Charge Voltage Failed");
+	}
+}
+
+void writeCoil(modbus_t *ctx) {
+	int rc;
+	int status;
+
+	/***************
+	*
+	* Reset control (send '1')
+	*
+	****************/
+	
+	cout << "System Reset (enter 1): ";
+	cin >> status;
+	cout << endl;
+	rc = _writeCoil(ctx, 0x00FF, status);
+	if(rc == 1) {
+		printf("Successful system reset\n");
+	} else {
+		printf("System reset Failed");
 	}
 }
 
@@ -519,9 +544,13 @@ void logs(modbus_t *ctx) {
 	}
 }
 
-int writeRegister(modbus_t *ctx, int addr, float rawInput) {
+int _writeRegister(modbus_t *ctx, int addr, float rawInput) {
 	float floatInputVal = (rawInput * 32768.0) / 100.0;
 	int intInputVal = (int)floatInputVal;
 	//cout << intInputVal << endl;
 	return modbus_write_register(ctx, addr, intInputVal);
+}
+
+int _writeCoil(modbus_t *ctx, int addr, int status) {
+	return modbus_write_bit(ctx, addr, status);
 }

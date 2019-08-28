@@ -130,7 +130,7 @@ void read(modbus_t *ctx) {
 	float EV_reg, EV_float, EV_floatlb_trip, EV_float_cancel, EV_eq;
 	unsigned short Et_float, Et_floatlb, Et_float_exit_cum, Et_eqcalendar, Et_eq_above, Et_eq_reg;
 	float EV_reg2, EV_float2, EV_floatlb_trip2, EV_float_cancel2, EV_eq2;
-	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f;
+	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f, Power_out;
 	short T_hs, T_batt;
 	unsigned short Et_float2, Et_floatlb2, Et_float_exit_cum2, Et_eqcalendar2, Et_eq_above2, Et_eq_reg2;
 	float EV_tempcomp, EV_hvd, EV_hvr, Evb_ref_lim;
@@ -391,6 +391,16 @@ void read(modbus_t *ctx) {
 
 	T_batt=data[6];
 	printf("T_batt = %d °C\n",T_batt);
+
+	/* Read charge power from RAM and convert the results to proper value */
+	rc = modbus_read_registers(ctx, 0x0027, 1, data);
+	if (rc == -1) {
+		fprintf(stderr, "%s\n", modbus_strerror(errno));
+		return;
+	}
+
+	Power_out=data[0]*989.5/65536.0;
+	printf("Power_out = %.2f V\n",Power_out);
 }
 
 void writeRegister(modbus_t *ctx) {

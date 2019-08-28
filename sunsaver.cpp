@@ -100,6 +100,9 @@ modbus_t* connect(string *devicePath) {
 		fprintf(stderr, "Unable to create the libmodbus context\n");
 		return ctx;
 	}
+
+	/* Define a new timeout of 500ms */
+	modbus_set_response_timeout(ctx, 0, 500000);
 	
 	/* Set the slave id to the SunSaverMPPT MODBUS id */
 	modbus_set_slave(ctx, SUNSAVERMPPT);
@@ -128,6 +131,7 @@ void read(modbus_t *ctx) {
 	unsigned short Et_float, Et_floatlb, Et_float_exit_cum, Et_eqcalendar, Et_eq_above, Et_eq_reg;
 	float EV_reg2, EV_float2, EV_floatlb_trip2, EV_float_cancel2, EV_eq2;
 	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f;
+	short T_hs, T_batt;
 	unsigned short Et_float2, Et_floatlb2, Et_float_exit_cum2, Et_eqcalendar2, Et_eq_above2, Et_eq_reg2;
 	float EV_tempcomp, EV_hvd, EV_hvr, Evb_ref_lim;
 	short ETb_max, ETb_min;
@@ -359,7 +363,7 @@ void read(modbus_t *ctx) {
 	printf("Etmr_eqcalendar = %d days\n",Etmr_eqcalendar);
 
 	/* Read the RAM and convert the results to their proper values */
-	rc = modbus_read_registers(ctx, 0x0008, 5, data);
+	rc = modbus_read_registers(ctx, 0x0008, 7, data);
 	if (rc == -1) {
 		fprintf(stderr, "%s\n", modbus_strerror(errno));
 		return;
@@ -381,6 +385,12 @@ void read(modbus_t *ctx) {
 
 	Adc_il_f=data[4]*79.16/32768.0;
 	printf("Adc_il_f = %.2f A\n",Adc_il_f);
+
+	T_hs=data[5];
+	printf("T_hs = %d °C\n",T_hs);
+
+	T_batt=data[6];
+	printf("T_batt = %d °C\n",T_batt);
 }
 
 void writeRegister(modbus_t *ctx) {

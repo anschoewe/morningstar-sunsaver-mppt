@@ -101,8 +101,8 @@ modbus_t* connect(string *devicePath) {
 		return ctx;
 	}
 
-	/* Define a new timeout of 500ms */
-	modbus_set_response_timeout(ctx, 0, 500000);
+	/* Define a new timeout of 750ms */
+	modbus_set_response_timeout(ctx, 0, 750000);
 	
 	/* Set the slave id to the SunSaverMPPT MODBUS id */
 	modbus_set_slave(ctx, SUNSAVERMPPT);

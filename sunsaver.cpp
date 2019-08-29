@@ -142,6 +142,7 @@ void read(modbus_t *ctx) {
 	unsigned int Ehourmeter;
 	short Etmr_eqcalendar;
 	float EAhl_r, EAhl_t, EAhc_r, EAhc_t, EkWhc, EVb_min, EVb_max, EVa_max;
+	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily;
 	uint16_t data[50];
 	
 	/* Read the EEPROM Registers and convert the results to their proper values */
@@ -393,14 +394,26 @@ void read(modbus_t *ctx) {
 	printf("T_batt = %d °C\n",T_batt);
 
 	/* Read charge power from RAM and convert the results to proper value */
-	rc = modbus_read_registers(ctx, 0x0027, 1, data);
+	rc = modbus_read_registers(ctx, 0x0027, 8, data);
 	if (rc == -1) {
 		fprintf(stderr, "%s\n", modbus_strerror(errno));
 		return;
 	}
 
 	Power_out=data[0]*989.5/65536.0;
-	printf("Power_out = %.2f V\n",Power_out);
+	printf("Power_out = %.2f W\n",Power_out);
+
+	Vb_min_daily=data[4]*100.0/32768.0;
+	printf("Vb_min_daily (resets after dark) = %.2f V\n",Vb_min_daily);
+
+	Vb_max_daily=data[5]*100.0/32768.0;
+	printf("Vb_max_daily (resets after dark) = %.2f V\n",Vb_max_daily);
+
+	Ahc_daily=data[6]*0.1;
+	printf("Ahc_daily (resets after dark) = %.2f Ah\n",Ahc_daily);
+		
+	Ahl_daily=data[7]*0.1;
+	printf("Ahl_daily (resets after dark) = %.2f Ah\n",Ahl_daily);	
 }
 
 void writeRegister(modbus_t *ctx) {

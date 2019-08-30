@@ -130,7 +130,7 @@ void read(modbus_t *ctx) {
 	float EV_reg, EV_float, EV_floatlb_trip, EV_float_cancel, EV_eq;
 	unsigned short Et_float, Et_floatlb, Et_float_exit_cum, Et_eqcalendar, Et_eq_above, Et_eq_reg;
 	float EV_reg2, EV_float2, EV_floatlb_trip2, EV_float_cancel2, EV_eq2;
-	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f, Power_out;
+	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f, Power_out, Vb_f, Vb_ref;
 	short T_hs, T_batt;
 	unsigned short Et_float2, Et_floatlb2, Et_float_exit_cum2, Et_eqcalendar2, Et_eq_above2, Et_eq_reg2;
 	float EV_tempcomp, EV_hvd, EV_hvr, Evb_ref_lim;
@@ -143,6 +143,7 @@ void read(modbus_t *ctx) {
 	short Etmr_eqcalendar;
 	float EAhl_r, EAhl_t, EAhc_r, EAhc_t, EkWhc, EVb_min, EVb_max, EVa_max;
 	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily;
+	short charge_state;
 	uint16_t data[50];
 	
 	/* Read the EEPROM Registers and convert the results to their proper values */
@@ -373,19 +374,19 @@ void read(modbus_t *ctx) {
 	printf("\nRAM\n");
 
 	Adc_vb_f=data[0]*100.0/32768.0;
-	printf("Adc_vb_f = %.2f V\n",Adc_vb_f);
+	printf("Adc_vb_f = %.2f V (1sec avg)\n",Adc_vb_f);
 
 	Adc_va_f=data[1]*100.0/32768.0;
-	printf("Adc_va_f = %.2f V\n",Adc_va_f);
+	printf("Adc_va_f = %.2f V (1sec avg)\n",Adc_va_f);
 
 	Adc_vl_f=data[2]*100.0/32768.0;
-	printf("Adc_vl_f = %.2f V\n",Adc_vl_f);
+	printf("Adc_vl_f = %.2f V (1sec avg)\n",Adc_vl_f);
 
 	Adc_ic_f=data[3]*79.16/32768.0;
-	printf("Adc_ic_f = %.2f A\n",Adc_ic_f);
+	printf("Adc_ic_f = %.2f A (1sec avg)\n",Adc_ic_f);
 
 	Adc_il_f=data[4]*79.16/32768.0;
-	printf("Adc_il_f = %.2f A\n",Adc_il_f);
+	printf("Adc_il_f = %.2f A (1sec avg)\n",Adc_il_f);
 
 	T_hs=data[5];
 	printf("T_hs = %d °C\n",T_hs);
@@ -413,7 +414,24 @@ void read(modbus_t *ctx) {
 	printf("Ahc_daily (resets after dark) = %.2f Ah\n",Ahc_daily);
 		
 	Ahl_daily=data[7]*0.1;
-	printf("Ahl_daily (resets after dark) = %.2f Ah\n",Ahl_daily);	
+	printf("Ahl_daily (resets after dark) = %.2f Ah\n",Ahl_daily);
+
+	rc = modbus_read_registers(ctx, 0x0011, 4, data);
+	if (rc == -1) {
+		fprintf(stderr, "%s\n", modbus_strerror(errno));
+		return;
+	}
+
+	charge_state=data[0];
+	printf("charge_state = %d (0=start,1=night_check,2=disconnect,3=night,4=fault,5=bulk_charge,6=absorption,7=float,8=equalize)\n",charge_state);
+
+	Vb_f=data[2]*100.0/32768.0;
+	printf("Vb_f = %.2f V (25sec avg)\n",Vb_f);
+
+	Vb_ref=data[2]*96.667/32768.0;
+	printf("Vb_ref = %.2f V\n",Vb_ref);
+	
+		
 }
 
 void writeRegister(modbus_t *ctx) {
@@ -432,11 +450,20 @@ void writeRegister(modbus_t *ctx) {
 	cout << "Regulation Charge Voltage: ";
 	cin >> rawInput;
 	cout << endl;
+	// bank1
+	rc = _writeRegister(ctx, 0xE000, rawInput);
+	if(rc == 1) {
+		printf("Successfully updated Regulation Charge Voltage for bank1\n");
+	} else {
+		printf("Update of Regulation Charge Voltage for bank1 Failed");
+	}
+
+	//bank2
 	rc = _writeRegister(ctx, 0xE00D, rawInput);
 	if(rc == 1) {
-		printf("Successfully updated Regulation Charge Voltage\n");
+		printf("Successfully updated Regulation Charge Voltage for bank2\n");
 	} else {
-		printf("Update of Regulation Charge Voltage Failed");
+		printf("Update of Regulation Charge Voltagefor bank2 Failed");
 	}
 }
 

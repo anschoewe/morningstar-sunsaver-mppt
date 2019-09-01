@@ -386,13 +386,6 @@ void read(modbus_t *ctx) {
 	
 	Etmr_eqcalendar=data[14];
 	printf("Etmr_eqcalendar = %d days\n",Etmr_eqcalendar);
-
-	/* Read the RAM and convert the results to their proper values */
-	rc = modbus_read_registers(ctx, 0x0008, 7, data);
-	if (rc == -1) {
-		fprintf(stderr, "%s\n", modbus_strerror(errno));
-		return;
-	}
 	
 	printf("\nRAM\n");
 	printRam(ctx);
@@ -405,6 +398,13 @@ void printRam(modbus_t *ctx) {
 	short T_hs, T_batt;
 	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily;
 	short charge_state;
+
+	/* Read the RAM and convert the results to their proper values */
+	rc = modbus_read_registers(ctx, 0x0008, 7, data);
+	if (rc == -1) {
+		fprintf(stderr, "%s\n", modbus_strerror(errno));
+		return;
+	}
 
 	Adc_vb_f=data[0]*100.0/32768.0;
 	printf("Adc_vb_f = %.2f V (1sec avg)\n",Adc_vb_f);

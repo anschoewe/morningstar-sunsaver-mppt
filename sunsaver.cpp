@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <modbus.h>
 #include <unistd.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
+
 using namespace std;
 
 #define SUNSAVERMPPT    0x01	/* MODBUS Address of the SunSaver MPPT */
@@ -42,6 +45,9 @@ void writeCoil(modbus_t *ctx);
 void logs(modbus_t *ctx);
 int _writeRegister(modbus_t *ctx, int addr, float rawInput);
 int _writeCoil(modbus_t *ctx, int addr, int status);
+void clearScreen();
+void liveReload(modbus_t *ctx);
+void printRam(modbus_t *ctx);
 
 int main(void)
 {
@@ -55,6 +61,8 @@ int main(void)
 	cout << "1. Read" << endl;
 	cout << "2. Write" << endl;
 	cout << "3. Logs" << endl;
+	cout << "4. Write Coils" << endl;
+	cout << "5. Live Reload" << endl;
 	cout << "Mode: ";
 
 	cin >> menuChoice;
@@ -75,8 +83,10 @@ int main(void)
 		writeRegister(ctx);
 	} else if(menuChoice == 3) {
 		logs(ctx);
-	} else if(menuChoice == 3) {
+	} else if(menuChoice == 4) {
 		writeCoil(ctx);
+	} else if(menuChoice == 5) {
+		liveReload(ctx);
 	} else {
 		printf("Invalid choice.");
 		return -1;
@@ -86,6 +96,23 @@ int main(void)
 
 	/* Close the MODBUS connection */
 	return disconnect(ctx);
+}
+
+void clearScreen() {
+	for (int n = 0; n < 5; n++) {
+		printf( "\n\n\n\n\n\n\n\n\n\n" );
+	}
+}
+
+
+void liveReload(modbus_t *ctx) {
+	int i = 0;
+	while(i++ < 15) { //refresh every 2 seconds and then stop after 30 total sec
+		clearScreen();
+		// printf( "Hello %d\n", i++);
+		printRam(ctx);
+		this_thread::sleep_for(chrono::milliseconds(2000));
+	}
 }
 
 modbus_t* connect(string *devicePath) {
@@ -130,8 +157,6 @@ void read(modbus_t *ctx) {
 	float EV_reg, EV_float, EV_floatlb_trip, EV_float_cancel, EV_eq;
 	unsigned short Et_float, Et_floatlb, Et_float_exit_cum, Et_eqcalendar, Et_eq_above, Et_eq_reg;
 	float EV_reg2, EV_float2, EV_floatlb_trip2, EV_float_cancel2, EV_eq2;
-	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f, Power_out, Vb_f, Vb_ref;
-	short T_hs, T_batt;
 	unsigned short Et_float2, Et_floatlb2, Et_float_exit_cum2, Et_eqcalendar2, Et_eq_above2, Et_eq_reg2;
 	float EV_tempcomp, EV_hvd, EV_hvr, Evb_ref_lim;
 	short ETb_max, ETb_min;
@@ -142,8 +167,6 @@ void read(modbus_t *ctx) {
 	unsigned int Ehourmeter;
 	short Etmr_eqcalendar;
 	float EAhl_r, EAhl_t, EAhc_r, EAhc_t, EkWhc, EVb_min, EVb_max, EVa_max;
-	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily;
-	short charge_state;
 	uint16_t data[50];
 	
 	/* Read the EEPROM Registers and convert the results to their proper values */
@@ -372,6 +395,16 @@ void read(modbus_t *ctx) {
 	}
 	
 	printf("\nRAM\n");
+	printRam(ctx);
+}
+
+void printRam(modbus_t *ctx) {
+	int rc;
+	uint16_t data[50];
+	float Adc_vb_f, Adc_va_f, Adc_vl_f, Adc_ic_f, Adc_il_f, Power_out, Vb_f, Vb_ref;
+	short T_hs, T_batt;
+	float Vb_min_daily, Vb_max_daily, Ahc_daily, Ahl_daily;
+	short charge_state;
 
 	Adc_vb_f=data[0]*100.0/32768.0;
 	printf("Adc_vb_f = %.2f V (1sec avg)\n",Adc_vb_f);
@@ -430,8 +463,6 @@ void read(modbus_t *ctx) {
 
 	Vb_ref=data[2]*96.667/32768.0;
 	printf("Vb_ref = %.2f V\n",Vb_ref);
-	
-		
 }
 
 void writeRegister(modbus_t *ctx) {
